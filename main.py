@@ -1,4 +1,3 @@
-from ast import excepthandler
 import pathlib
 
 import requests
@@ -12,9 +11,20 @@ def download_books(books_num):
         url = f"http://tululu.org/txt.php?id={num}"
         response = requests.get(url, verify=False)
         response.raise_for_status()
+        try:
+            check_for_redirect(response)
+        except requests.HTTPError:
+            continue
         with open(filename, "w") as outfile:
             outfile.write(response.text)
-    
+
+
+def check_for_redirect(response):
+    main_url = "http://tululu.org/"
+    if response.url == main_url:
+        raise requests.HTTPError
+    pass
+
 
 def main():
     try:
