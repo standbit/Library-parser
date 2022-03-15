@@ -1,6 +1,14 @@
 import pathlib
+import urllib3
 
 import requests
+
+
+def check_for_redirect(response):
+    main_url = ["https://tululu.org/", "http://tululu.org/"]
+    if response.url == main_url[0] or response.url == main_url[1]:
+        raise requests.HTTPError
+    pass
 
 
 def download_books(books_num):
@@ -13,20 +21,15 @@ def download_books(books_num):
         response.raise_for_status()
         try:
             check_for_redirect(response)
+            print(response.url)
         except requests.HTTPError:
             continue
         with open(filename, "w") as outfile:
             outfile.write(response.text)
 
 
-def check_for_redirect(response):
-    main_url = "http://tululu.org/"
-    if response.url == main_url:
-        raise requests.HTTPError
-    pass
-
-
 def main():
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     try:
         download_books(10)
     except requests.exceptions.HTTPError as err:
