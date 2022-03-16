@@ -1,3 +1,4 @@
 requests==2.27.*
 beautifulsoup4==4.10.*
 lxml==4.8.*
+pathvalidate==2.5.*

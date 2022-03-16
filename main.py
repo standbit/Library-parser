@@ -1,7 +1,9 @@
+import os
 import pathlib
 import urllib3
 
 import requests
+from pathvalidate import sanitize_filename
 
 
 def check_for_redirect(response):
@@ -28,14 +30,36 @@ def download_books(books_num):
             outfile.write(response.text)
 
 
+def download_txt(url, filename, folder='books/'):
+    books_folder = pathlib.Path(folder)
+    book_name = f"{filename}.txt"
+    books_folder.mkdir(parents=True, exist_ok=True)
+    response = requests.get(url)
+    response.raise_for_status()
+    filepath = os.path.join(books_folder, sanitize_filename(book_name))
+    with open(filepath, "w") as outfile:
+        outfile.write(response.text)
+    return filepath
+
+
 def main():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    try:
-        download_books(10)
-    except requests.exceptions.HTTPError as err:
-        print("General Error, incorrect link\n", str(err))
-    except requests.ConnectionError as err:
-        print("Connection Error. Check Internet connection.\n", str(err))
+    # try:
+    #     download_books(10)
+    # except requests.exceptions.HTTPError as err:
+    #     print("General Error, incorrect link\n", str(err))
+    # except requests.ConnectionError as err:
+    #     print("Connection Error. Check Internet connection.\n", str(err))
+    url = 'http://tululu.org/txt.php?id=1'
+
+    filepath = download_txt(url, 'Алиби')
+    print(filepath)  # Выведется books/Алиби.txt
+    
+    filepath = download_txt(url, 'Али/би', folder='books/')
+    print(filepath)  # Выведется books/Алиби.txt
+    
+    filepath = download_txt(url, 'Али\\би', folder='txt/')
+    print(filepath)  # Выведется txt/Алиби.txt
 
 
 if __name__=="__main__":
