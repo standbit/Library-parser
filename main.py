@@ -70,6 +70,22 @@ def download_comments(url):
         print(tag.find(class_="black").text)    
 
 
+def get_genres(url):
+    response = requests.get(url, verify=False)
+    response.raise_for_status()
+    check_for_redirect(response)
+    soup = BeautifulSoup(response.text, "lxml")
+    tags = soup.find_all(class_="d_book")
+    jenres = []
+    for tag in tags:
+        if tag.b:
+            if tag.b.text == "Жанр книги:":
+                a_tags = tag.find_all("a")
+    for jenre in a_tags:
+        jenres.append(jenre.text)
+    print(jenres)
+
+
 def main():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     books_folder = pathlib.Path("books/")
@@ -85,8 +101,9 @@ def main():
                 book_title = f"{num}. {get_book_title(book_page)}"
                 # book_img_link = get_book_img_link(book_page)
                 # download_image(book_img_link)
-                download_comments(book_page)
+                # download_comments(book_page)
                 print(book_title)
+                get_genres(book_page)
             except requests.exceptions.HTTPError:
                 continue
     except requests.exceptions.HTTPError as err:
