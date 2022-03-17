@@ -4,7 +4,31 @@ import urllib3
 
 import requests
 from pathvalidate import sanitize_filename
-from tululu import get_book_title
+from bs4 import BeautifulSoup
+import unicodedata
+from urllib.parse import urljoin
+
+
+def get_book_title(url):
+    response = requests.get(url, verify=False)
+    response.raise_for_status()
+    check_for_redirect(response)
+    soup = BeautifulSoup(response.text, "lxml")
+    title_tag = soup.find("h1")
+    title_text = title_tag.text
+    clean_text = unicodedata.normalize("NFKD", title_text).partition("::")
+    book_title = clean_text[0].strip()
+    return book_title
+
+
+def get_book_img_link(url):
+    response = requests.get(url, verify=False)
+    response.raise_for_status()
+    check_for_redirect(response)
+    soup = BeautifulSoup(response.text, "lxml")
+    book_link = soup.find(class_="bookimage").find("img")["src"]
+    urljoin("http://tululu.org/", book_link)
+    return urljoin("http://tululu.org/", book_link)
 
 
 def check_for_redirect(response):
@@ -30,12 +54,15 @@ def main():
     books_folder.mkdir(parents=True, exist_ok=True)
     try:
         for num in range(1, 11):
-            book_url = f"http://tululu.org/txt.php?id={num}"
+            book_dowload_link = f"http://tululu.org/txt.php?id={num}"
             book_page = f"https://tululu.org/b{num}"
-            book_title = f"{num}. {get_book_title(book_page)}"
             try:
-                download_txt(book_url, book_title, books_folder)
-            except requests.HTTPError:
+                #download_txt(book_download_link, book_title, books_folder)
+                book_title = f"{num}. {get_book_title(book_page)}"
+                book_img_link = get_book_img_link(book_page)
+                print(book_title)
+                print(book_img_link)
+            except requests.exceptions.HTTPError:
                 continue
     except requests.exceptions.HTTPError as err:
         print("General Error, incorrect link\n", str(err))
