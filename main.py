@@ -58,6 +58,18 @@ def download_image(url, folder="images/"):
         outfile.write(response.content)
     
 
+def download_comments(url):
+    response = requests.get(url, verify=False)
+    response.raise_for_status()
+    check_for_redirect(response)
+    soup = BeautifulSoup(response.text, "lxml")
+    tags = soup.find(id="content").find_all(class_="texts")
+    if not tags:
+        print()
+    for tag in tags:
+        print(tag.find(class_="black").text)    
+
+
 def main():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     books_folder = pathlib.Path("books/")
@@ -70,9 +82,11 @@ def main():
             book_page = f"https://tululu.org/b{num}"
             try:
                 # download_txt(book_download_link, book_title, books_folder)
-                # book_title = f"{num}. {get_book_title(book_page)}"
-                book_img_link = get_book_img_link(book_page)
-                download_image(book_img_link)
+                book_title = f"{num}. {get_book_title(book_page)}"
+                # book_img_link = get_book_img_link(book_page)
+                # download_image(book_img_link)
+                download_comments(book_page)
+                print(book_title)
             except requests.exceptions.HTTPError:
                 continue
     except requests.exceptions.HTTPError as err:
