@@ -7,6 +7,7 @@ from pathvalidate import sanitize_filename
 from bs4 import BeautifulSoup
 import unicodedata
 from urllib.parse import urljoin
+from urllib.parse import urlparse
 
 
 def get_book_title(url):
@@ -26,9 +27,9 @@ def get_book_img_link(url):
     response.raise_for_status()
     check_for_redirect(response)
     soup = BeautifulSoup(response.text, "lxml")
-    book_link = soup.find(class_="bookimage").find("img")["src"]
-    urljoin("http://tululu.org/", book_link)
-    return urljoin("http://tululu.org/", book_link)
+    book_img_link = soup.find(class_="bookimage").find("img")["src"]
+    full_img_link = urljoin("http://tululu.org/", book_img_link)
+    return full_img_link
 
 
 def check_for_redirect(response):
@@ -40,28 +41,38 @@ def check_for_redirect(response):
 
 def download_txt(url, filename, folder="books/"):
     book_file = f"{filename}.txt"
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
     response.raise_for_status()
     check_for_redirect(response)
     filepath = os.path.join(folder, sanitize_filename(book_file))
     with open(filepath, "w") as outfile:
         outfile.write(response.text)
 
+
+def download_image(url, folder="images/"):
+    image_file = urlparse(url).path.rpartition("/")[-1]
+    response = requests.get(url, verify=False)
+    response.raise_for_status()
+    filepath = os.path.join(folder, image_file)
+    with open(filepath, "wb") as outfile:
+        outfile.write(response.content)
     
+
 def main():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     books_folder = pathlib.Path("books/")
     books_folder.mkdir(parents=True, exist_ok=True)
+    images_folder = pathlib.Path("images/")
+    images_folder.mkdir(parents=True, exist_ok=True)
     try:
         for num in range(1, 11):
             book_dowload_link = f"http://tululu.org/txt.php?id={num}"
             book_page = f"https://tululu.org/b{num}"
             try:
-                #download_txt(book_download_link, book_title, books_folder)
-                book_title = f"{num}. {get_book_title(book_page)}"
+                # download_txt(book_download_link, book_title, books_folder)
+                # book_title = f"{num}. {get_book_title(book_page)}"
                 book_img_link = get_book_img_link(book_page)
-                print(book_title)
-                print(book_img_link)
+                download_image(book_img_link)
             except requests.exceptions.HTTPError:
                 continue
     except requests.exceptions.HTTPError as err:
