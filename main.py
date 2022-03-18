@@ -1,22 +1,48 @@
+import argparse
 import os
 import pathlib
-import urllib3
+import unicodedata
+from urllib.parse import urljoin, urlparse
 
 import requests
-from pathvalidate import sanitize_filename
+import urllib3
 from bs4 import BeautifulSoup
-import unicodedata
-from urllib.parse import urljoin
-from urllib.parse import urlparse
-from pprint import pprint
+from pathvalidate import sanitize_filename
 
 
-BOOK_CONTENT ={
+BOOK_CONTENT = {
     "Заголовок:": "",
     "Автор:": "",
     "Жанр:": "",
     "Комментарии:": "",
 }
+
+
+def create_parser():
+    parser = argparse.ArgumentParser(
+        description="""скачает книги с tululu.org \
+        в указанном диапазоне""")
+    parser.add_argument(
+        "-s",
+        "--start_id",
+        default="1",
+        type=int,
+        help="номер страницы, с которой начать скачивание книг")
+    parser.add_argument(
+        "-e",
+        "--end_id",
+        default="10",
+        type=int,
+        help="номер страницы, до которой скачивать книги")
+    return parser
+
+
+def check_for_redirect(response):
+    main_url = ["https://tululu.org/", "http://tululu.org/"]
+    if response.url == main_url[0] or response.url == main_url[1]:
+        raise requests.HTTPError
+    pass
+
 
 def get_book_title(content):
     title_tag = content.find("h1")
@@ -37,31 +63,25 @@ def get_book_img_link(url):
     return full_img_link
 
 
-def check_for_redirect(response):
-    main_url = ["https://tululu.org/", "http://tululu.org/"]
-    if response.url == main_url[0] or response.url == main_url[1]:
-        raise requests.HTTPError
-    pass
-
-
 def download_txt(url, filename, folder="books/"):
-    book_file = f"{filename}.txt"
     response = requests.get(url, verify=False)
     response.raise_for_status()
     check_for_redirect(response)
+    book_file = f"{filename}.txt"
     filepath = os.path.join(folder, sanitize_filename(book_file))
     with open(filepath, "w") as outfile:
         outfile.write(response.text)
 
 
 def download_image(url, folder="images/"):
-    image_file = urlparse(url).path.rpartition("/")[-1]
     response = requests.get(url, verify=False)
     response.raise_for_status()
+    check_for_redirect(response)
+    image_file = urlparse(url).path.rpartition("/")[-1]
     filepath = os.path.join(folder, image_file)
     with open(filepath, "wb") as outfile:
         outfile.write(response.content)
-    
+
 
 def get_comments(content):
     comments = []
@@ -107,23 +127,29 @@ def parse_book_page(html_content):
 
 def main():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    # books_folder = pathlib.Path("books/")
-    # books_folder.mkdir(parents=True, exist_ok=True)
-    # images_folder = pathlib.Path("images/")
-    # images_folder.mkdir(parents=True, exist_ok=True)
+    args = create_parser().parse_args()
+    start = args.start_id
+    end = args.end_id
+    books_folder = pathlib.Path("books/")
+    books_folder.mkdir(parents=True, exist_ok=True)
+    images_folder = pathlib.Path("images/")
+    images_folder.mkdir(parents=True, exist_ok=True)
     try:
-        for num in range(1, 11):
-            # book_dowload_link = f"http://tululu.org/txt.php?id={num}"
-            book_page = f"https://tululu.org/b{num}"
+        for num in range(start, end):
+            book_download_link = f"http://tululu.org/txt.php?id={num}"
+            book_page = f"http://tululu.org/b{num}"
             try:
-                # download_txt(book_download_link, book_title, books_folder)
-                # book_title = f"{num}. {get_book_title(book_page)}"
-                # book_img_link = get_book_img_link(book_page)
-                # download_image(book_img_link)
-                # download_comments(book_page)
                 html_content = get_html_content(book_page)
+                book_name = get_book_title(html_content)
+                book_title = f"{num}. {book_name[0]}"
+                download_txt(book_download_link, book_title, books_folder)
+                book_img_link = get_book_img_link(book_page)
+                download_image(book_img_link)
                 book_content = parse_book_page(html_content)
-                print(book_content["Заголовок:"], book_content["Жанр:"], sep="\n" )
+                print(
+                    book_content["Заголовок:"],
+                    book_content["Автор:"],
+                    sep="\n")
                 print()
             except requests.exceptions.HTTPError:
                 continue
@@ -133,5 +159,5 @@ def main():
         print("Connection Error. Check Internet connection.\n", str(err))
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
