@@ -38,10 +38,18 @@ def create_parser():
 
 
 def check_for_redirect(response):
-    main_url = ["https://tululu.org/", "http://tululu.org/"]
-    if response.url == main_url[0] or response.url == main_url[1]:
+    main_urls = ["https://tululu.org/", "http://tululu.org/"]
+    if response.url == main_urls[0] or response.url == main_urls[1]:
         raise requests.HTTPError
     pass
+
+
+def get_html_content(url):
+    response = requests.get(url, verify=False)
+    response.raise_for_status()
+    check_for_redirect(response)
+    html_content = BeautifulSoup(response.text, "lxml")
+    return html_content
 
 
 def get_book_title(content):
@@ -53,12 +61,8 @@ def get_book_title(content):
     return book_name, book_author
 
 
-def get_book_img_link(url):
-    response = requests.get(url, verify=False)
-    response.raise_for_status()
-    check_for_redirect(response)
-    soup = BeautifulSoup(response.text, "lxml")
-    book_img_link = soup.find(class_="bookimage").find("img")["src"]
+def get_book_img_link(content):
+    book_img_link = content.find(class_="bookimage").find("img")["src"]
     full_img_link = urljoin("http://tululu.org/", book_img_link)
     return full_img_link
 
@@ -106,14 +110,6 @@ def get_genres(content):
     return genres
 
 
-def get_html_content(url):
-    response = requests.get(url, verify=False)
-    response.raise_for_status()
-    check_for_redirect(response)
-    html_content = BeautifulSoup(response.text, "lxml")
-    return html_content
-
-
 def parse_book_page(html_content):
     book_name, book_author = get_book_title(html_content)
     genres = get_genres(html_content)
@@ -143,7 +139,7 @@ def main():
                 book_name = get_book_title(html_content)
                 book_title = f"{num}. {book_name[0]}"
                 download_txt(book_download_link, book_title, books_folder)
-                book_img_link = get_book_img_link(book_page)
+                book_img_link = get_book_img_link(html_content)
                 download_image(book_img_link)
                 book_content = parse_book_page(html_content)
                 print(
