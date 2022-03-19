@@ -10,14 +10,6 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 
-BOOK_CONTENT = {
-    "Заголовок:": "",
-    "Автор:": "",
-    "Жанр:": "",
-    "Комментарии:": "",
-}
-
-
 def create_parser():
     parser = argparse.ArgumentParser(
         description="""скачает книги с tululu.org \
@@ -111,14 +103,20 @@ def get_genres(content):
 
 
 def parse_book_page(html_content):
+    book_content = {
+        "Заголовок:": "",
+        "Автор:": "",
+        "Жанр:": "",
+        "Комментарии:": "",
+        }
     book_name, book_author = get_book_title(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
-    BOOK_CONTENT["Заголовок:"] = book_name
-    BOOK_CONTENT["Автор:"] = book_author
-    BOOK_CONTENT["Жанр:"] = genres
-    BOOK_CONTENT["Комментарии:"] = comments
-    return BOOK_CONTENT
+    book_content["Заголовок:"] = book_name
+    book_content["Автор:"] = book_author
+    book_content["Жанр:"] = genres
+    book_content["Комментарии:"] = comments
+    return book_content
 
 
 def main():
