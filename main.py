@@ -33,7 +33,6 @@ def check_for_redirect(response):
     main_urls = ["https://tululu.org/", "http://tululu.org/"]
     if response.url == main_urls[0] or response.url == main_urls[1]:
         raise requests.HTTPError
-    pass
 
 
 def get_html_content(url):
@@ -128,34 +127,31 @@ def main():
     books_folder.mkdir(parents=True, exist_ok=True)
     images_folder = pathlib.Path("images/")
     images_folder.mkdir(parents=True, exist_ok=True)
-    try:
-        for num in range(start, end):
-            book_download_link = "http://tululu.org/txt.php"
-            payload = {"id": num}
-            book_page = f"http://tululu.org/b{num}"
-            try:
-                html_content = get_html_content(book_page)
-                book_name = get_book_title(html_content)
-                book_title = f"{num}. {book_name[0]}"
-                download_txt(
-                    book_download_link,
-                    payload,
-                    book_title,
-                    books_folder)
-                book_img_link = get_book_img_link(html_content)
-                download_image(book_img_link)
-                book_content = parse_book_page(html_content)
-                print(
-                    book_content["Заголовок:"],
-                    book_content["Автор:"],
-                    sep="\n")
-                print()
-            except requests.exceptions.HTTPError:
-                continue
-    except requests.exceptions.HTTPError as err:
-        print("General Error, incorrect link\n", str(err))
-    except requests.ConnectionError as err:
-        print("Connection Error. Check Internet connection.\n", str(err))
+    for num in range(start, end):
+        book_download_link = "http://tululu.org/txt.php"
+        payload = {"id": num}
+        book_page = f"http://tululu.org/b{num}"
+        try:
+            html_content = get_html_content(book_page)
+            book_name = get_book_title(html_content)
+            book_title = f"{num}. {book_name[0]}"
+            download_txt(
+                book_download_link,
+                payload,
+                book_title,
+                books_folder)
+            book_img_link = get_book_img_link(html_content)
+            download_image(book_img_link)
+            book_content = parse_book_page(html_content)
+            print(
+                book_content["Заголовок:"],
+                book_content["Автор:"],
+                sep="\n")
+            print()
+        except requests.exceptions.HTTPError:
+            continue
+        except requests.ConnectionError as err:
+            print("Connection Error. Check Internet connection.\n", str(err))
 
 
 if __name__ == "__main__":
