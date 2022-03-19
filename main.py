@@ -59,8 +59,8 @@ def get_book_img_link(content):
     return full_img_link
 
 
-def download_txt(url, filename, folder="books/"):
-    response = requests.get(url, verify=False)
+def download_txt(url, payload, filename, folder="books/"):
+    response = requests.get(url, params=payload, verify=False)
     response.raise_for_status()
     check_for_redirect(response)
     book_file = f"{filename}.txt"
@@ -130,13 +130,18 @@ def main():
     images_folder.mkdir(parents=True, exist_ok=True)
     try:
         for num in range(start, end):
-            book_download_link = f"http://tululu.org/txt.php?id={num}"
+            book_download_link = "http://tululu.org/txt.php"
+            payload = {"id": num}
             book_page = f"http://tululu.org/b{num}"
             try:
                 html_content = get_html_content(book_page)
                 book_name = get_book_title(html_content)
                 book_title = f"{num}. {book_name[0]}"
-                download_txt(book_download_link, book_title, books_folder)
+                download_txt(
+                    book_download_link,
+                    payload,
+                    book_title,
+                    books_folder)
                 book_img_link = get_book_img_link(html_content)
                 download_image(book_img_link)
                 book_content = parse_book_page(html_content)
