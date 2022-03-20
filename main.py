@@ -102,19 +102,15 @@ def get_genres(content):
 
 
 def parse_book_page(html_content):
-    book_content = {
-        "Заголовок:": "",
-        "Автор:": "",
-        "Жанр:": "",
-        "Комментарии:": "",
-        }
     book_name, book_author = get_book_title(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
-    book_content["Заголовок:"] = book_name
-    book_content["Автор:"] = book_author
-    book_content["Жанр:"] = genres
-    book_content["Комментарии:"] = comments
+    book_content = {
+        "Заголовок:": book_name,
+        "Автор:": book_author,
+        "Жанр:": genres,
+        "Комментарии:": comments,
+        }
     return book_content
 
 
