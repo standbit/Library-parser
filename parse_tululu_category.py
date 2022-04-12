@@ -29,12 +29,14 @@ def get_book_links(content):
 
 def main():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    fantastic_link = "https://tululu.org/g/27-nauchnaya-fantastika"
+    fantastic_link = f"https://tululu.org/g/27-nauchnaya-fantastika"
     try:
-        html_content = get_html_content(fantastic_link)
-        links = get_book_links(html_content)
-        for link in links:
-            print(link)
+        for num in range(1, 11):
+            fantastic_link = f"https://tululu.org/g/27-nauchnaya-fantastika/page-{num}"
+            html_content = get_html_content(fantastic_link)
+            links = get_book_links(html_content)
+            for link in links:
+                print(link)
     except requests.exceptions.HTTPError as err:
         print("General error.\n", str(err))
     except requests.ConnectionError as err:
