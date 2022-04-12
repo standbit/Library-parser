@@ -17,11 +17,14 @@ def get_html_content(url):
     return html_content
 
 
-def get_book_id(content):
-    href_tag = content.find(class_="glavniy_conteyner bolchaya_kniga").find(class_="name")
-    relative_link = href_tag.find("a")["href"]
-    book_link = urljoin("https://tululu.org/", relative_link)
-    return book_link
+def get_book_links(content):
+    book_names_tags = content.find(class_="flex").find_all(class_="name")
+    links = []
+    for tag in book_names_tags:
+        relative_link = tag.find("a")["href"]
+        book_link = urljoin("https://tululu.org/", relative_link)
+        links.append(book_link)
+    return links
 
 
 def main():
@@ -29,8 +32,9 @@ def main():
     fantastic_link = "https://tululu.org/g/27-nauchnaya-fantastika"
     try:
         html_content = get_html_content(fantastic_link)
-        tag = get_book_id(html_content)
-        print(tag)
+        links = get_book_links(html_content)
+        for link in links:
+            print(link)
     except requests.exceptions.HTTPError as err:
         print("General error.\n", str(err))
     except requests.ConnectionError as err:
