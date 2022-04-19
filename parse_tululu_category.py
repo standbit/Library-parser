@@ -17,10 +17,10 @@ def get_html_content(url):
     return html_content
 
 
-def get_book_links(content):
-    book_names_tags = content.find(class_="flex").find_all(class_="name")
+def find_book_links(content):
+    book_tags = content.find_all(class_="d_book")
     links = []
-    for tag in book_names_tags:
+    for tag in book_tags:
         relative_link = tag.find("a")["href"]
         book_link = urljoin("https://tululu.org/", relative_link)
         links.append(book_link)
@@ -29,12 +29,12 @@ def get_book_links(content):
 
 def main():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    fantastic_link = f"https://tululu.org/g/27-nauchnaya-fantastika"
+    fantastic_link = "https://tululu.org/l55/"
     try:
         for num in range(1, 11):
-            fantastic_link = f"https://tululu.org/g/27-nauchnaya-fantastika/page-{num}"
+            fantastic_link = f"https://tululu.org/l55/{num}"
             html_content = get_html_content(fantastic_link)
-            links = get_book_links(html_content)
+            links = find_book_links(html_content)
             for link in links:
                 print(link)
     except requests.exceptions.HTTPError as err:
