@@ -1,20 +1,12 @@
-import argparse
-import os
+import itertools
+import json
 import pathlib
-import unicodedata
 from urllib.parse import urljoin, urlparse
 
 import requests
 import urllib3
-from bs4 import BeautifulSoup
-from pathvalidate import sanitize_filename
 
-
-def get_html_content(url):
-    response = requests.get(url, verify=False)
-    response.raise_for_status()
-    html_content = BeautifulSoup(response.text, "lxml")
-    return html_content
+from main import get_html_content, parse_book_page
 
 
 def find_book_links(content):
@@ -29,14 +21,37 @@ def find_book_links(content):
 
 def main():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    fantastic_link = "https://tululu.org/l55/"
+    books_folder = pathlib.Path("books/")
+    books_folder.mkdir(parents=True, exist_ok=True)
+    images_folder = pathlib.Path("images/")
+    images_folder.mkdir(parents=True, exist_ok=True)
     try:
-        for num in range(1, 11):
+        book_links = []
+        for num in range(1, 5):
             fantastic_link = f"https://tululu.org/l55/{num}"
             html_content = get_html_content(fantastic_link)
             links = find_book_links(html_content)
-            for link in links:
-                print(link)
+            book_links.append(links)
+        flat_book_links = list(itertools.chain(*book_links))
+        books_description = []
+        for book_link in flat_book_links:
+            print(book_link)
+            book_id = urlparse(book_link).path.split("/")[1]
+            book_id = book_id.replace("b", '')
+            try:
+                book_page = get_html_content(book_link)
+                book = parse_book_page(book_page, book_id)
+                books_description.append(book)
+            except requests.exceptions.HTTPError as err:
+                print(err)
+                continue
+        with open("books_description.json", "w") as my_file:
+            json.dump(
+                books_description,
+                my_file,
+                indent=4,
+                sort_keys=True,
+                ensure_ascii=False)
     except requests.exceptions.HTTPError as err:
         print("General error.\n", str(err))
     except requests.ConnectionError as err:

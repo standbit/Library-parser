@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import pathlib
 import unicodedata
@@ -63,9 +64,10 @@ def download_txt(url, payload, filename, folder="books/"):
     response.raise_for_status()
     check_for_redirect(response)
     book_file = f"{filename}.txt"
-    filepath = os.path.join(folder, sanitize_filename(book_file))
-    with open(filepath, "w") as outfile:
+    book_path = os.path.join(folder, sanitize_filename(book_file))
+    with open(book_path, "w") as outfile:
         outfile.write(response.text)
+    return book_path
 
 
 def download_image(url, folder="images/"):
@@ -73,9 +75,12 @@ def download_image(url, folder="images/"):
     response.raise_for_status()
     check_for_redirect(response)
     image_file = urlparse(url).path.rpartition("/")[-1]
-    filepath = os.path.join(folder, image_file)
-    with open(filepath, "wb") as outfile:
+    if image_file == "nopic.gif":
+        return "No image"
+    img_src = os.path.join(folder, image_file)
+    with open(img_src, "wb") as outfile:
         outfile.write(response.content)
+    return img_src
 
 
 def get_comments(content):
@@ -101,15 +106,25 @@ def get_genres(content):
     return genres
 
 
-def parse_book_page(html_content):
+def parse_book_page(html_content, book_id):
     book_name, book_author = get_book_title(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
+    img_link = get_book_img_link(html_content)
+    img_src = download_image(img_link)
+    book_download_link = "http://tululu.org/txt.php"
+    payload = {"id": book_id}
+    book_path = download_txt(
+        url=book_download_link,
+        payload=payload,
+        filename=book_name)
     book_content = {
-        "Заголовок:": book_name,
-        "Автор:": book_author,
-        "Жанр:": genres,
-        "Комментарии:": comments,
+        "title:": book_name,
+        "author:": book_author,
+        "genres:": genres,
+        "img_src": img_src,
+        "book_path": book_path,
+        "comments:": comments,
         }
     return book_content
 
@@ -130,7 +145,7 @@ def main():
         try:
             html_content = get_html_content(book_page)
             book_name = get_book_title(html_content)
-            book_title = f"{num}. {book_name[0]}"
+            book_title = f"{num}-я книга. {book_name[0]}"
             download_txt(
                 book_download_link,
                 payload,
