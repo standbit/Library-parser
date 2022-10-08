@@ -7,16 +7,15 @@ import requests
 import urllib3
 
 from main import get_html_content, parse_book_page
+from collections import OrderedDict
+
 
 
 def find_book_links(content):
-    book_tags = content.find_all(class_="d_book")
-    links = []
-    for tag in book_tags:
-        relative_link = tag.find("a")["href"]
-        book_link = urljoin("https://tululu.org/", relative_link)
-        links.append(book_link)
-    return links
+    links_selector = ".d_book a[href^='/b']"
+    page_links = [el["href"] for el in content.select(links_selector)]
+    rel_book_links= list(OrderedDict.fromkeys(page_links))
+    return rel_book_links
 
 
 def main():
@@ -35,11 +34,10 @@ def main():
         flat_book_links = list(itertools.chain(*book_links))
         books_description = []
         for book_link in flat_book_links:
-            print(book_link)
-            book_id = urlparse(book_link).path.split("/")[1]
-            book_id = book_id.replace("b", '')
+            full_link = urljoin("https://tululu.org/", book_link)
+            book_id = book_link.split("/")[1].replace("b", '')
             try:
-                book_page = get_html_content(book_link)
+                book_page = get_html_content(full_link)
                 book = parse_book_page(book_page, book_id)
                 books_description.append(book)
             except requests.exceptions.HTTPError as err:

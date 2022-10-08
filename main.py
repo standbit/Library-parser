@@ -45,17 +45,18 @@ def get_html_content(url):
 
 
 def get_book_title(content):
-    title_tag = content.find("h1")
+    title_tag = content.select_one("h1")
     title_text = title_tag.text
-    clean_text = unicodedata.normalize("NFKD", title_text).partition("::")
-    book_name = clean_text[0].strip()
-    book_author = clean_text[2].strip()
+    divided_text = unicodedata.normalize("NFKD", title_text).partition("::")
+    book_name = divided_text[0].strip()
+    book_author = divided_text[2].strip()
     return book_name, book_author
 
 
 def get_book_img_link(content):
-    book_img_link = content.find(class_="bookimage").find("img")["src"]
-    full_img_link = urljoin("http://tululu.org/", book_img_link)
+    selector = ".bookimage img"
+    rel_img_link = content.select_one(selector)["src"]
+    full_img_link = urljoin("http://tululu.org/", rel_img_link)
     return full_img_link
 
 
@@ -84,25 +85,14 @@ def download_image(url, folder="images/"):
 
 
 def get_comments(content):
-    comments = []
-    comments_tags = content.find(id="content").find_all(class_="texts")
-    if not comments_tags:
-        return ""
-    for tag in comments_tags:
-        comment = tag.find(class_="black").text
-        comments.append(comment)
+    selector = "#content .texts .black"
+    comments = [comment.text for comment in content.select(selector)]
     return comments
 
 
 def get_genres(content):
-    tags = content.find_all(class_="d_book")
-    genres = []
-    for tag in tags:
-        if tag.b:
-            if tag.b.text == "Жанр книги:":
-                a_tags = tag.find_all("a")
-    for genre in a_tags:
-        genres.append(genre.text)
+    selector = "span.d_book a"
+    genres = [genre.text for genre in content.select(selector)]
     return genres
 
 
@@ -153,7 +143,9 @@ def main():
                 books_folder)
             book_img_link = get_book_img_link(html_content)
             download_image(book_img_link)
-            book_content = parse_book_page(html_content)
+            book_content = parse_book_page(
+                html_content=html_content,
+                book_id=num)
             print(
                 book_content["Заголовок:"],
                 book_content["Автор:"],
