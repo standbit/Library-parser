@@ -6,7 +6,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 import urllib3
 
-from main import get_html_content, parse_book_page, create_arg_parser
+from parse_tululu_main import get_html_content, parse_book_page, create_arg_parser
 from collections import OrderedDict
 
 
@@ -21,13 +21,25 @@ def find_book_links(content):
 def main(args):
     start_page = args.start_id
     end_page = args.end_id
+    dest_folder = args.dest_folder
+    no_txt = args.skip_txt
+    no_img = args.skip_img
+    json_folder = args.json_path
+    book_folder = pathlib.Path(f"{dest_folder}/books/")
+    img_folder = pathlib.Path(f"{dest_folder}/images/")
+
     if not end_page:
         end_page = start_page + 1
+    if no_img:
+        pass
+    else:
+        img_folder.mkdir(parents=True, exist_ok=True)
+    if no_txt:
+        pass
+    else:
+        book_folder.mkdir(parents=True, exist_ok=True)
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    books_folder = pathlib.Path("books/")
-    books_folder.mkdir(parents=True, exist_ok=True)
-    images_folder = pathlib.Path("images/")
-    images_folder.mkdir(parents=True, exist_ok=True)
+
     try:
         book_links = []
         for num in range(start_page, end_page):
@@ -37,6 +49,7 @@ def main(args):
             links = find_book_links(html_content)
             book_links.append(links)
         flat_book_links = list(itertools.chain(*book_links))
+
         books_description = []
         for book_link in flat_book_links:
             full_link = urljoin("https://tululu.org/", book_link)
@@ -44,18 +57,26 @@ def main(args):
             book_id = book_link.split("/")[1].replace("b", '')
             try:
                 book_page = get_html_content(full_link)
-                book = parse_book_page(book_page, book_id)
+                book = parse_book_page(
+                    html_content=book_page, 
+                    book_id= book_id,
+                    img_dir=img_folder,
+                    book_dir=book_folder,
+                    img_flag=no_img,
+                    book_flag=no_txt)
                 books_description.append(book)
             except requests.exceptions.HTTPError as err:
                 print(err)
                 continue
-        with open("books_description.json", "w") as my_file:
+        
+        with open(f"{json_folder}/books_description.json", "w") as my_file:
             json.dump(
                 books_description,
                 my_file,
                 indent=4,
                 sort_keys=True,
                 ensure_ascii=False)
+    
     except requests.exceptions.HTTPError as err:
         print("General error.\n", str(err))
     except requests.ConnectionError as err:

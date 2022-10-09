@@ -13,27 +13,48 @@ from pathvalidate import sanitize_filename
 
 def create_arg_parser():
     parser = argparse.ArgumentParser(
-        description="""скачает книги с tululu.org \
-        в указанном диапазоне""")
+        description="скачает книги с tululu.org")
     parser.add_argument(
-        "-s",
         "--start_id",
         type=int,
         required=True,
-        help="номер страницы, с которой начать скачивание книг")
+        help="номер страницы, с которой начать скачивать")
     parser.add_argument(
-        "-e",
         "--end_id",
         required=False,
         type=int,
-        help="номер страницы, до которой скачивать книги")
+        help="номер страницы, до которой скачивать")
+    parser.add_argument(
+        "--dest_folder",
+        required=False,
+        type=str,
+        default=os.getcwd(),
+        help="путь к каталогу с результатами парсинга")
+    parser.add_argument(
+        "--skip_txt",
+        required=False,
+        action="store_true",
+        default=False,
+        help="флаг = не скачивать книги")
+    parser.add_argument(
+        "--skip_img",
+        required=False,
+        action="store_true",
+        default=False,
+        help="флаг = не скачивать картинки")
+    parser.add_argument(
+        "--json_path",
+        required=False,
+        type=str,
+        default=os.getcwd(),
+        help="путь к *.json файлу с результатами")
     return parser
 
 
 def check_for_redirect(response):
     main_urls = ["https://tululu.org/", "http://tululu.org/"]
-    if response.url == main_urls[0] or response.url == main_urls[1]:
-        raise requests.HTTPError
+    if response.url in main_urls:
+        raise requests.HTTPError(f"Ups...the page was redirected")
 
 
 def get_html_content(url):
@@ -60,8 +81,15 @@ def get_book_img_link(content):
     return full_img_link
 
 
-def download_txt(url, payload, filename, folder="books/"):
-    response = requests.get(url, params=payload, verify=False)
+def download_txt(
+        url,
+        payload,
+        filename,
+        folder):
+    response = requests.get(
+        url,
+        params=payload,
+        verify=False)
     response.raise_for_status()
     check_for_redirect(response)
     book_file = f"{filename}.txt"
@@ -71,7 +99,9 @@ def download_txt(url, payload, filename, folder="books/"):
     return book_path
 
 
-def download_image(url, folder="images/"):
+def download_image(
+        url,
+        folder):
     response = requests.get(url, verify=False)
     response.raise_for_status()
     check_for_redirect(response)
@@ -96,18 +126,34 @@ def get_genres(content):
     return genres
 
 
-def parse_book_page(html_content, book_id):
+def parse_book_page(
+    html_content,
+    book_id,
+    img_dir,
+    book_dir,
+    img_flag,
+    book_flag):
     book_name, book_author = get_book_title(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
-    img_link = get_book_img_link(html_content)
-    img_src = download_image(img_link)
-    book_download_link = "http://tululu.org/txt.php"
-    payload = {"id": book_id}
-    book_path = download_txt(
-        url=book_download_link,
-        payload=payload,
-        filename=book_name)
+    if img_flag:
+        img_src = "-|-Skipped-|-"
+        pass
+    else:
+        img_link = get_book_img_link(html_content)
+        img_src = download_image(
+            url=img_link,
+            folder=img_dir)
+    if book_flag:
+        book_path = "-|-Skipped-|-"
+    else:
+        book_download_link = "http://tululu.org/txt.php"
+        payload = {"id": book_id}
+        book_path = download_txt(
+            url=book_download_link,
+            payload=payload,
+            filename=book_name,
+            folder=book_dir)
     book_content = {
         "title:": book_name,
         "author:": book_author,
