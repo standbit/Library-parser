@@ -6,7 +6,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 import urllib3
 
-from main import get_html_content, parse_book_page
+from main import get_html_content, parse_book_page, create_arg_parser
 from collections import OrderedDict
 
 
@@ -18,7 +18,11 @@ def find_book_links(content):
     return rel_book_links
 
 
-def main():
+def main(args):
+    start_page = args.start_id
+    end_page = args.end_id
+    if not end_page:
+        end_page = start_page + 1
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     books_folder = pathlib.Path("books/")
     books_folder.mkdir(parents=True, exist_ok=True)
@@ -26,8 +30,9 @@ def main():
     images_folder.mkdir(parents=True, exist_ok=True)
     try:
         book_links = []
-        for num in range(1, 5):
+        for num in range(start_page, end_page):
             fantastic_link = f"https://tululu.org/l55/{num}"
+            print(fantastic_link)
             html_content = get_html_content(fantastic_link)
             links = find_book_links(html_content)
             book_links.append(links)
@@ -35,6 +40,7 @@ def main():
         books_description = []
         for book_link in flat_book_links:
             full_link = urljoin("https://tululu.org/", book_link)
+            print(full_link)
             book_id = book_link.split("/")[1].replace("b", '')
             try:
                 book_page = get_html_content(full_link)
@@ -57,4 +63,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    cli_args = create_arg_parser().parse_args()
+    main(args=cli_args)

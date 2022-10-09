@@ -11,20 +11,20 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 
-def create_parser():
+def create_arg_parser():
     parser = argparse.ArgumentParser(
         description="""скачает книги с tululu.org \
         в указанном диапазоне""")
     parser.add_argument(
         "-s",
         "--start_id",
-        default="1",
         type=int,
+        required=True,
         help="номер страницы, с которой начать скачивание книг")
     parser.add_argument(
         "-e",
         "--end_id",
-        default="10",
+        required=False,
         type=int,
         help="номер страницы, до которой скачивать книги")
     return parser
@@ -121,7 +121,7 @@ def parse_book_page(html_content, book_id):
 
 def main():
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    args = create_parser().parse_args()
+    args = create_arg_parser().parse_args()
     start = args.start_id
     end = args.end_id
     books_folder = pathlib.Path("books/")
@@ -147,8 +147,8 @@ def main():
                 html_content=html_content,
                 book_id=num)
             print(
-                book_content["Заголовок:"],
-                book_content["Автор:"],
+                book_content["title:"],
+                book_content["author:"],
                 sep="\n")
             print()
         except requests.exceptions.HTTPError:
