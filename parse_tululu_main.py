@@ -91,6 +91,7 @@ def download_txt(
     check_for_redirect(response)
     book_file = f"{filename}.txt"
     book_path = os.path.join(folder, sanitize_filename(book_file))
+
     with open(book_path, "w") as outfile:
         outfile.write(response.text)
     return book_path
@@ -106,6 +107,7 @@ def download_image(
     if image_file == "nopic.gif":
         return "No image"
     img_src = os.path.join(folder, image_file)
+
     with open(img_src, "wb") as outfile:
         outfile.write(response.content)
     return img_src
@@ -133,6 +135,7 @@ def parse_book_page(
     book_name, book_author = get_book_title(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
+
     if img_flag:
         img_src = "-|-Skipped-|-"
         pass
@@ -141,6 +144,7 @@ def parse_book_page(
         img_src = download_image(
             url=img_link,
             folder=img_dir)
+
     if book_flag:
         book_path = "-|-Skipped-|-"
     else:

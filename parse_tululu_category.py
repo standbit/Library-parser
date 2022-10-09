@@ -1,20 +1,21 @@
 import itertools
 import json
 import pathlib
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 
 import requests
 import urllib3
 
-from parse_tululu_main import get_html_content, parse_book_page, create_arg_parser
+from parse_tululu_main import get_html_content
+from parse_tululu_main import parse_book_page
+from parse_tululu_main import create_arg_parser
 from collections import OrderedDict
-
 
 
 def find_book_links(content):
     links_selector = ".d_book a[href^='/b']"
     page_links = [el["href"] for el in content.select(links_selector)]
-    rel_book_links= list(OrderedDict.fromkeys(page_links))
+    rel_book_links = list(OrderedDict.fromkeys(page_links))
     return rel_book_links
 
 
@@ -58,8 +59,8 @@ def main(args):
             try:
                 book_page = get_html_content(full_link)
                 book = parse_book_page(
-                    html_content=book_page, 
-                    book_id= book_id,
+                    html_content=book_page,
+                    book_id=book_id,
                     img_dir=img_folder,
                     book_dir=book_folder,
                     img_flag=no_img,
@@ -68,7 +69,7 @@ def main(args):
             except requests.exceptions.HTTPError as err:
                 print(err)
                 continue
-        
+
         with open(f"{json_folder}/books_description.json", "w") as my_file:
             json.dump(
                 books_description,
@@ -76,7 +77,7 @@ def main(args):
                 indent=4,
                 sort_keys=True,
                 ensure_ascii=False)
-    
+
     except requests.exceptions.HTTPError as err:
         print("General error.\n", str(err))
     except requests.ConnectionError as err:
