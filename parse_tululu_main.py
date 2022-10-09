@@ -1,12 +1,9 @@
 import argparse
-import json
 import os
-import pathlib
 import unicodedata
 from urllib.parse import urljoin, urlparse
 
 import requests
-import urllib3
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
@@ -54,7 +51,7 @@ def create_arg_parser():
 def check_for_redirect(response):
     main_urls = ["https://tululu.org/", "http://tululu.org/"]
     if response.url in main_urls:
-        raise requests.HTTPError(f"Ups...the page was redirected")
+        raise requests.HTTPError("Ups...the page was redirected")
 
 
 def get_html_content(url):
@@ -127,12 +124,12 @@ def get_genres(content):
 
 
 def parse_book_page(
-    html_content,
-    book_id,
-    img_dir,
-    book_dir,
-    img_flag,
-    book_flag):
+        html_content,
+        book_id,
+        img_dir,
+        book_dir,
+        img_flag,
+        book_flag):
     book_name, book_author = get_book_title(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
@@ -166,41 +163,7 @@ def parse_book_page(
 
 
 def main():
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    args = create_arg_parser().parse_args()
-    start = args.start_id
-    end = args.end_id
-    books_folder = pathlib.Path("books/")
-    books_folder.mkdir(parents=True, exist_ok=True)
-    images_folder = pathlib.Path("images/")
-    images_folder.mkdir(parents=True, exist_ok=True)
-    for num in range(start, end):
-        book_download_link = "http://tululu.org/txt.php"
-        payload = {"id": num}
-        book_page = f"http://tululu.org/b{num}"
-        try:
-            html_content = get_html_content(book_page)
-            book_name = get_book_title(html_content)
-            book_title = f"{num}-я книга. {book_name[0]}"
-            download_txt(
-                book_download_link,
-                payload,
-                book_title,
-                books_folder)
-            book_img_link = get_book_img_link(html_content)
-            download_image(book_img_link)
-            book_content = parse_book_page(
-                html_content=html_content,
-                book_id=num)
-            print(
-                book_content["title:"],
-                book_content["author:"],
-                sep="\n")
-            print()
-        except requests.exceptions.HTTPError:
-            continue
-        except requests.ConnectionError as err:
-            print("Connection Error. Check Internet connection.\n", str(err))
+    pass
 
 
 if __name__ == "__main__":
