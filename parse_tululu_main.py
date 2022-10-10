@@ -139,19 +139,15 @@ def parse_book_page(
     book_name, book_author = get_book_name_author(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
-
-    if img_flag:
-        img_src = "-|-Skipped-|-"
-        pass
-    else:
+    
+    img_src = None
+    book_path = None
+    if not img_flag:
         img_link = get_book_img_link(html_content)
         img_src = download_image(
             download_url=img_link,
             folder=img_dir)
-
-    if book_flag:
-        book_path = "-|-Skipped-|-"
-    else:
+    if not book_flag:
         book_download_link = "http://tululu.org/txt.php"
         payload = {"id": book_id}
         book_path = download_txt(
