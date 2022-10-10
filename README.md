@@ -40,6 +40,8 @@ $ ./parse_tululu_category.py --start_id 10 --end_id 20 --dest_folder /mnt/c/User
 ```
 Вывод в терминал:
 
+![image](https://user-images.githubusercontent.com/77130336/194813720-abafa3b1-8df2-4275-b0ec-90bfdf7b1b54.png)
+
 В терминале выводятся ссылки на книги библиотеки, которые были пропарсены. 
 
 ## Цель проекта
