@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import os
 import unicodedata
@@ -10,7 +11,7 @@ from pathvalidate import sanitize_filename
 
 def create_arg_parser():
     arg_parser = argparse.ArgumentParser(
-        description="скачает книги из раздела 'Фантастика' с tululu.org")
+        description="скачает книги жанра 'Фантастика' с tululu.org")
     arg_parser.add_argument(
         "--start_id",
         type=int,
