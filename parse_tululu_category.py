@@ -24,21 +24,17 @@ def main():
     start_page = args.start_id
     end_page = args.end_id
     dest_folder = args.dest_folder
-    no_txt = args.skip_txt
-    no_img = args.skip_img
+    skip_txt = args.skip_txt
+    skip_img = args.skip_img
     json_folder = args.json_path
     book_folder = pathlib.Path(f"{dest_folder}/books/")
     img_folder = pathlib.Path(f"{dest_folder}/images/")
 
     if not end_page:
         end_page = start_page + 1
-    if no_img:
-        pass
-    else:
+    if not skip_img:
         img_folder.mkdir(parents=True, exist_ok=True)
-    if no_txt:
-        pass
-    else:
+    if not skip_txt:
         book_folder.mkdir(parents=True, exist_ok=True)
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -63,8 +59,8 @@ def main():
                     book_id=book_id,
                     img_dir=img_folder,
                     book_dir=book_folder,
-                    img_flag=no_img,
-                    book_flag=no_txt)
+                    img_flag=skip_img,
+                    book_flag=skip_txt)
                 books_description.append(book)
             except requests.exceptions.HTTPError as err:
                 print(err)
