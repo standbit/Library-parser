@@ -19,7 +19,8 @@ def find_book_links(content):
     return relative_book_links
 
 
-def main(args):
+def main():
+    args = create_arg_parser().parse_args()
     start_page = args.start_id
     end_page = args.end_id
     dest_folder = args.dest_folder
@@ -84,5 +85,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    cli_args = create_arg_parser().parse_args()
-    main(args=cli_args)
+    main()
