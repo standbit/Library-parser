@@ -39,16 +39,15 @@ def main():
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     try:
-        book_links = []
+        relative_book_links = []
         for num in range(start_page, end_page):
             fantastic_link = f"https://tululu.org/l55/{num}"
             html_content = get_html_content(fantastic_link)
             links = find_book_links(html_content)
-            book_links.append(links)
-        flat_book_links = list(itertools.chain(*book_links))
+            relative_book_links.extend(links)
 
         books_description = []
-        for link in flat_book_links:
+        for link in relative_book_links:
             book_link = urljoin("https://tululu.org/", link)
             print(book_link)
             book_id = link.split("/")[1].replace("b", '')
