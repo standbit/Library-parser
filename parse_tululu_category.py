@@ -68,19 +68,18 @@ def main():
             except requests.exceptions.HTTPError:
                 logger.warning(f"{book_link} has no link for downloading txt")
                 continue
-
-        with open(f"{json_folder}/books_description.json", "w") as output_file:
-            json.dump(
-                books_description,
-                output_file,
-                indent=4,
-                sort_keys=True,
-                ensure_ascii=False)
-
     except requests.exceptions.HTTPError as err:
         logger.error(f"General error - {str(err)}")
     except requests.ConnectionError as err:
         logger.error(f"Connection Error, check Internet connect - {str(err)}")
+
+    with open(f"{json_folder}/books_description.json", "w") as output_file:
+        json.dump(
+            books_description,
+            output_file,
+            indent=4,
+            sort_keys=True,
+            ensure_ascii=False)
 
 
 if __name__ == "__main__":
