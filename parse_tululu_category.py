@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import itertools
 import json
+import logging
 import pathlib
 from collections import OrderedDict
 from urllib.parse import urljoin
@@ -20,6 +20,10 @@ def find_book_links(content):
 
 
 def main():
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    logger = logging.getLogger("Check links")
+    logger.setLevel(logging.INFO)
     args = create_arg_parser().parse_args()
     start_page = args.start_id
     end_page = args.end_id
@@ -49,7 +53,6 @@ def main():
         books_description = []
         for link in relative_book_links:
             book_link = urljoin("https://tululu.org/", link)
-            print(book_link)
             book_id = link.split("/")[1].replace("b", '')
             try:
                 book_page = get_html_content(book_link)
@@ -61,8 +64,9 @@ def main():
                     img_flag=skip_img,
                     book_flag=skip_txt)
                 books_description.append(book)
-            except requests.exceptions.HTTPError as err:
-                print(err)
+                logger.info(f"{book_link} is parsed - OK")
+            except requests.exceptions.HTTPError:
+                logger.warning(f"{book_link} has no link for downloading txt")
                 continue
 
         with open(f"{json_folder}/books_description.json", "w") as output_file:
@@ -74,9 +78,9 @@ def main():
                 ensure_ascii=False)
 
     except requests.exceptions.HTTPError as err:
-        print("General error.\n", str(err))
+        logger.error(f"General error - {str(err)}")
     except requests.ConnectionError as err:
-        print("Connection Error. Check Internet connection.\n", str(err))
+        logger.error(f"Connection Error, check Internet connect - {str(err)}")
 
 
 if __name__ == "__main__":

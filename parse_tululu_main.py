@@ -52,9 +52,7 @@ def create_arg_parser():
 def check_for_redirect(response):
     main_urls = ["https://tululu.org/", "http://tululu.org/"]
     if response.url in main_urls:
-        raise requests.HTTPError(
-        "Ups...the page above was redirected -\
-        (has no link for downloading txt)")
+        raise requests.HTTPError()
 
 
 def get_html_content(url):
