@@ -73,10 +73,10 @@ def get_book_name_author(content, flag=False):
     return book_name.strip(), book_author.strip()
 
 
-def get_book_img_link(content):
+def get_book_img_link(base_link, content):
     selector = ".bookimage img"
     relative_img_link = content.select_one(selector)["src"]
-    book_img_link = urljoin("http://tululu.org/", relative_img_link)
+    book_img_link = urljoin(base_link, relative_img_link)
     return book_img_link
 
 

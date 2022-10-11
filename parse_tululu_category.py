@@ -58,7 +58,9 @@ def main():
             book_id = "".join(num for num in link if num.isdigit())
             try:
                 book_page = get_html_content(book_link)
-                img_link = get_book_img_link(content=book_page)
+                img_link = get_book_img_link(
+                    base_link=book_link,
+                    content=book_page)
                 img_src = download_image(
                     download_url=img_link,
                     folder=img_folder,
