@@ -53,7 +53,7 @@ def main():
         books_description = []
         for link in relative_book_links:
             book_link = urljoin("https://tululu.org/", link)
-            book_id = link.split("/")[1].replace("b", '')
+            book_id = "".join(num for num in link if num.isdigit())
             try:
                 book_page = get_html_content(book_link)
                 book = parse_book_page(

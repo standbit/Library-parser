@@ -65,10 +65,10 @@ def get_html_content(url):
 
 def get_book_name_author(content):
     title_text = content.select_one("h1").text
-    divided_title = unicodedata.normalize("NFKD", title_text).partition("::")
-    book_name = divided_title[0].strip()
-    book_author = divided_title[2].strip()
-    return book_name, book_author
+    book_name, _, book_author = unicodedata.normalize(
+        "NFKD",
+        title_text).partition("::")
+    return book_name.strip(), book_author.strip()
 
 
 def get_book_img_link(content):
@@ -107,9 +107,9 @@ def download_image(
         verify=False)
     response.raise_for_status()
     check_for_redirect(response)
-    image_file = urlparse(download_url).path.rpartition("/")[-1]
+    *_, image_file = urlparse(download_url).path.rpartition("/")
     if image_file == "nopic.gif":
-        return "No image"
+        return None
     img_src = os.path.join(folder, image_file)
 
     with open(img_src, "wb") as outfile:
@@ -139,7 +139,7 @@ def parse_book_page(
     book_name, book_author = get_book_name_author(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
-    
+
     img_src = None
     book_path = None
     if not img_flag:
