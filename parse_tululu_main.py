@@ -63,11 +63,13 @@ def get_html_content(url):
     return html_content
 
 
-def get_book_name_author(content):
+def get_book_name_author(content, flag=False):
     title_text = content.select_one("h1").text
     book_name, _, book_author = unicodedata.normalize(
         "NFKD",
         title_text).partition("::")
+    if flag:
+        return book_name.strip()
     return book_name.strip(), book_author.strip()
 
 
@@ -82,8 +84,11 @@ def download_txt(
         download_url,
         payload,
         filename,
-        folder):
+        folder,
+        book_flag):
 
+    if book_flag:
+        return None
     response = requests.get(
         url=download_url,
         params=payload,
@@ -100,8 +105,11 @@ def download_txt(
 
 def download_image(
         download_url,
-        folder):
+        folder,
+        img_flag):
 
+    if img_flag:
+        return None
     response = requests.get(
         url=download_url,
         verify=False)
@@ -131,30 +139,11 @@ def get_genres(content):
 
 def parse_book_page(
         html_content,
-        book_id,
-        img_dir,
-        book_dir,
-        img_flag,
-        book_flag):
+        book_path,
+        img_src):
     book_name, book_author = get_book_name_author(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
-
-    img_src = None
-    book_path = None
-    if not img_flag:
-        img_link = get_book_img_link(html_content)
-        img_src = download_image(
-            download_url=img_link,
-            folder=img_dir)
-    if not book_flag:
-        book_download_link = "http://tululu.org/txt.php"
-        payload = {"id": book_id}
-        book_path = download_txt(
-            download_url=book_download_link,
-            payload=payload,
-            filename=book_name,
-            folder=book_dir)
     book_content = {
         "title:": book_name,
         "author:": book_author,

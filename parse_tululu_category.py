@@ -8,8 +8,9 @@ from urllib.parse import urljoin
 import requests
 import urllib3
 
-from parse_tululu_main import (create_arg_parser, get_html_content,
-                               parse_book_page)
+from parse_tululu_main import (create_arg_parser, download_image, download_txt,
+                               get_book_img_link, get_book_name_author,
+                               get_html_content, parse_book_page)
 
 
 def find_book_links(content):
@@ -51,18 +52,33 @@ def main():
             relative_book_links.extend(links)
 
         books_description = []
+        book_download_link = "http://tululu.org/txt.php"
         for link in relative_book_links:
             book_link = urljoin("https://tululu.org/", link)
             book_id = "".join(num for num in link if num.isdigit())
             try:
                 book_page = get_html_content(book_link)
+                img_link = get_book_img_link(content=book_page)
+                img_src = download_image(
+                    download_url=img_link,
+                    folder=img_folder,
+                    img_flag=skip_img)
+
+                payload = {"id": book_id}
+                book_name = get_book_name_author(
+                    content=book_page,
+                    flag=True)
+                book_path = download_txt(
+                    download_url=book_download_link,
+                    payload=payload,
+                    filename=book_name,
+                    folder=book_folder,
+                    book_flag=skip_txt)
+
                 book = parse_book_page(
                     html_content=book_page,
-                    book_id=book_id,
-                    img_dir=img_folder,
-                    book_dir=book_folder,
-                    img_flag=skip_img,
-                    book_flag=skip_txt)
+                    book_path=book_path,
+                    img_src=img_src)
                 books_description.append(book)
                 logger.info(f"{book_link} is parsed - OK")
             except requests.exceptions.HTTPError:
