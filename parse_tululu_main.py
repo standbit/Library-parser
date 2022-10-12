@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
-import os
 import unicodedata
+from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -26,7 +26,7 @@ def create_arg_parser():
         "--dest_folder",
         required=False,
         type=str,
-        default=os.getcwd(),
+        default=Path.cwd(),
         help="путь к каталогу с результатами парсинга")
     arg_parser.add_argument(
         "--skip_txt",
@@ -44,7 +44,7 @@ def create_arg_parser():
         "--json_path",
         required=False,
         type=str,
-        default=os.getcwd(),
+        default=Path.cwd(),
         help="путь к *.json файлу с результатами")
     return arg_parser
 
@@ -96,9 +96,9 @@ def download_txt(
     response.raise_for_status()
     check_for_redirect(response)
     book_file = f"{filename}.txt"
-    book_path = os.path.join(folder, sanitize_filename(book_file))
+    book_path = str(Path(folder, sanitize_filename(book_file)))
 
-    with open(book_path, "w") as outfile:
+    with open(book_path, "w", encoding="utf-8") as outfile:
         outfile.write(response.text)
     return book_path
 
@@ -118,7 +118,7 @@ def download_image(
     *_, image_file = urlparse(download_url).path.rpartition("/")
     if image_file == "nopic.gif":
         return None
-    img_src = os.path.join(folder, image_file)
+    img_src = str(Path(folder, image_file))
 
     with open(img_src, "wb") as outfile:
         outfile.write(response.content)

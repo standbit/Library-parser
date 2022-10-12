@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import json
 import logging
-import pathlib
 from collections import OrderedDict
+from pathlib import Path
 from time import sleep
 from urllib.parse import urljoin
 
@@ -34,8 +34,8 @@ def main():
     skip_txt = args.skip_txt
     skip_img = args.skip_img
     json_folder = args.json_path
-    book_folder = pathlib.Path(f"{dest_folder}/books/")
-    img_folder = pathlib.Path(f"{dest_folder}/images/")
+    book_folder = Path(dest_folder, "books")
+    img_folder = Path(dest_folder, "images")
 
     if not end_page:
         end_page = start_page + 1
@@ -106,7 +106,8 @@ def main():
             sleep(10)
             continue
 
-    with open(f"{json_folder}/books_description.json", "w") as output_file:
+    json_path = Path(json_folder, "books_description.json")
+    with open(json_path, "w", encoding="utf-8") as output_file:
         json.dump(
             books_description,
             output_file,
