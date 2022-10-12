@@ -13,6 +13,8 @@ from parse_tululu_main import (create_arg_parser, download_image, download_txt,
                                get_book_img_link, get_book_name_author,
                                get_html_content, parse_book_page)
 
+logger = logging.getLogger(__file__)
+
 
 def find_book_links(content):
     selector = ".d_book a[href^='/b']"
@@ -23,8 +25,8 @@ def find_book_links(content):
 
 def main():
     logging.basicConfig(
+        level=logging.ERROR,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    logger = logging.getLogger("Check links")
     logger.setLevel(logging.INFO)
 
     args = create_arg_parser().parse_args()
