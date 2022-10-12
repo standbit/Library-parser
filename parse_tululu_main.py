@@ -50,8 +50,7 @@ def create_arg_parser():
 
 
 def check_for_redirect(response):
-    main_urls = ["https://tululu.org/", "http://tululu.org/"]
-    if response.url in main_urls:
+    if len(response.history) > 1:
         raise requests.TooManyRedirects()
 
 
