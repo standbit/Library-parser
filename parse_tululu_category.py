@@ -71,6 +71,7 @@ def main():
         book_id = "".join(num for num in link if num.isdigit())
         try:
             book_page = get_html_content(book_link)
+            book = parse_book_page(html_content=book_page)
 
             if not skip_img:
                 img_link = get_book_img_link(
@@ -79,31 +80,27 @@ def main():
                 img_src = download_image(
                    download_url=img_link,
                    folder=img_folder)
-            
+
             if not skip_txt:
                 book_download_link = "http://tululu.org/txt.php"
                 payload = {"id": book_id}
-                book_name = get_book_name_author(
-                    content=book_page,
-                    flag=True)
+                book_name = book["title:"]
                 book_path = download_txt(
                     download_url=book_download_link,
                     payload=payload,
                     filename=book_name,
                     folder=book_folder)
-    
-            book = parse_book_page(
-                html_content=book_page,
-                book_path=book_path,
-                img_src=img_src)
+
+            book["book_path"] = book_path
+            book["img_src"] = img_src
             books_description.append(book)
             logger.info(f"{book_link} is parsed - OK")
         except requests.exceptions.HTTPError as err:
             logger.error(f"HTTP error - {str(err)}")
             continue
         except requests.exceptions.TooManyRedirects:
-                logger.warning(f"Redirect! {book_link} don't allow to download txt/img")
-                continue
+            logger.warning(f"Redirect From {book_link} can't download txt/img")
+            continue
         except requests.ConnectionError as err:
             logger.error(f"ConnectionError, check Internet connect-{str(err)}")
             sleep(10)

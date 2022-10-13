@@ -62,13 +62,11 @@ def get_html_content(url):
     return html_content
 
 
-def get_book_name_author(content, flag=False):
+def get_book_name_author(content):
     title_text = content.select_one("h1").text
     book_name, _, book_author = unicodedata.normalize(
         "NFKD",
         title_text).partition("::")
-    if flag:
-        return book_name.strip()
     return book_name.strip(), book_author.strip()
 
 
@@ -130,10 +128,7 @@ def get_genres(content):
     return genres
 
 
-def parse_book_page(
-        html_content,
-        book_path,
-        img_src):
+def parse_book_page(html_content):
     book_name, book_author = get_book_name_author(html_content)
     genres = get_genres(html_content)
     comments = get_comments(html_content)
@@ -141,8 +136,6 @@ def parse_book_page(
         "title:": book_name,
         "author:": book_author,
         "genres:": genres,
-        "img_src": img_src,
-        "book_path": book_path,
         "comments:": comments}
     return book_content
 
