@@ -39,6 +39,8 @@ def main():
     json_folder = args.json_path
     book_folder = Path(dest_folder, "books")
     img_folder = Path(dest_folder, "images")
+    img_src = None
+    book_path = None
 
     if not end_page:
         end_page = start_page + 1
@@ -63,31 +65,33 @@ def main():
         links = find_book_links(html_content)
         relative_book_links.extend(links)
     books_description = []
-    book_download_link = "http://tululu.org/txt.php"
+
     for link in relative_book_links:
         book_link = urljoin("https://tululu.org/", link)
         book_id = "".join(num for num in link if num.isdigit())
         try:
             book_page = get_html_content(book_link)
-            img_link = get_book_img_link(
-                base_link=book_link,
-                content=book_page)
-            img_src = download_image(
-                download_url=img_link,
-                folder=img_folder,
-                img_flag=skip_img)
-            
-            payload = {"id": book_id}
-            book_name = get_book_name_author(
-                content=book_page,
-                flag=True)
-            book_path = download_txt(
-                download_url=book_download_link,
-                payload=payload,
-                filename=book_name,
-                folder=book_folder,
-                book_flag=skip_txt)
 
+            if not skip_img:
+                img_link = get_book_img_link(
+                    base_link=book_link,
+                    content=book_page)
+                img_src = download_image(
+                   download_url=img_link,
+                   folder=img_folder)
+            
+            if not skip_txt:
+                book_download_link = "http://tululu.org/txt.php"
+                payload = {"id": book_id}
+                book_name = get_book_name_author(
+                    content=book_page,
+                    flag=True)
+                book_path = download_txt(
+                    download_url=book_download_link,
+                    payload=payload,
+                    filename=book_name,
+                    folder=book_folder)
+    
             book = parse_book_page(
                 html_content=book_page,
                 book_path=book_path,

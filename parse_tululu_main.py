@@ -83,11 +83,8 @@ def download_txt(
         download_url,
         payload,
         filename,
-        folder,
-        book_flag):
+        folder):
 
-    if book_flag:
-        return None
     response = requests.get(
         url=download_url,
         params=payload,
@@ -104,11 +101,8 @@ def download_txt(
 
 def download_image(
         download_url,
-        folder,
-        img_flag):
+        folder):
 
-    if img_flag:
-        return None
     response = requests.get(
         url=download_url,
         verify=False)
