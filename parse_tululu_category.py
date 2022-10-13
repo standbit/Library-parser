@@ -26,7 +26,8 @@ def find_book_links(content):
 def main():
     logging.basicConfig(
         level=logging.ERROR,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d",)
     logger.setLevel(logging.INFO)
 
     args = create_arg_parser().parse_args()
@@ -71,28 +72,21 @@ def main():
             img_link = get_book_img_link(
                 base_link=book_link,
                 content=book_page)
-            try:
-                img_src = download_image(
-                    download_url=img_link,
-                    folder=img_folder,
-                    img_flag=skip_img)
-            except requests.exceptions.TooManyRedirects:
-                logger.warning(f"{img_link} don't allow to download img")
-                continue
+            img_src = download_image(
+                download_url=img_link,
+                folder=img_folder,
+                img_flag=skip_img)
+            
             payload = {"id": book_id}
             book_name = get_book_name_author(
                 content=book_page,
                 flag=True)
-            try:
-                book_path = download_txt(
-                    download_url=book_download_link,
-                    payload=payload,
-                    filename=book_name,
-                    folder=book_folder,
-                    book_flag=skip_txt)
-            except requests.exceptions.TooManyRedirects:
-                logger.warning(f"{book_link} has no link for downloading txt")
-                continue
+            book_path = download_txt(
+                download_url=book_download_link,
+                payload=payload,
+                filename=book_name,
+                folder=book_folder,
+                book_flag=skip_txt)
 
             book = parse_book_page(
                 html_content=book_page,
@@ -103,6 +97,9 @@ def main():
         except requests.exceptions.HTTPError as err:
             logger.error(f"HTTP error - {str(err)}")
             continue
+        except requests.exceptions.TooManyRedirects:
+                logger.warning(f"Redirect! {book_link} don't allow to download txt/img")
+                continue
         except requests.ConnectionError as err:
             logger.error(f"ConnectionError, check Internet connect-{str(err)}")
             sleep(10)
